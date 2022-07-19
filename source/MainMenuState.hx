@@ -7,15 +7,18 @@ import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.FlxCamera;
+import flixel.addons.display.FlxBackdrop;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.effects.FlxFlicker;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.text.FlxText;
+import flixel.math.FlxAngle;
 import flixel.math.FlxMath;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
+import flixel.util.FlxSort;
 import lime.app.Application;
 import Achievements;
 import editors.MasterEditorMenu;
@@ -25,7 +28,7 @@ using StringTools;
 
 class MainMenuState extends MusicBeatState
 {
-	public static var psychEngineVersion:String = '0.6.2'; //This is also used for Discord RPC
+	public static var psychEngineVersion:String = '0.6.1'; //This is also used for Discord RPC
 	public static var curSelected:Int = 0;
 
 	var menuItems:FlxTypedGroup<FlxSprite>;
@@ -42,10 +45,17 @@ class MainMenuState extends MusicBeatState
 		'options'
 	];
 
+	var backdrops:FlxBackdrop;
+
 	var magenta:FlxSprite;
 	var camFollow:FlxObject;
 	var camFollowPos:FlxObject;
 	var debugKeys:Array<FlxKey>;
+
+	var radiusX:Int;
+	var radiusY:Int;
+	var originX:Float;
+	var originY:Float;
 
 	override function create()
 	{
@@ -73,10 +83,15 @@ class MainMenuState extends MusicBeatState
 
 		persistentUpdate = persistentDraw = true;
 
-		var yScroll:Float = Math.max(0.25 - (0.05 * (optionShit.length - 4)), 0.1);
-		var bg:FlxSprite = new FlxSprite(-80).loadGraphic(Paths.image('menuBG'));
-		bg.scrollFactor.set(0, yScroll);
-		bg.setGraphicSize(Std.int(bg.width * 1.175));
+		radiusX = 300;
+		radiusY = 250;
+
+		originX = FlxG.width - 30;
+		originY = FlxG.height - 100;
+
+		var bg:FlxSprite = new FlxSprite(-80).loadGraphic(Paths.image('menuDesat'));
+		bg.color = 0xFF8029B6;
+		bg.scrollFactor.set(0, 0);
 		bg.updateHitbox();
 		bg.screenCenter();
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
@@ -88,14 +103,22 @@ class MainMenuState extends MusicBeatState
 		add(camFollowPos);
 
 		magenta = new FlxSprite(-80).loadGraphic(Paths.image('menuDesat'));
-		magenta.scrollFactor.set(0, yScroll);
-		magenta.setGraphicSize(Std.int(magenta.width * 1.175));
+		magenta.scrollFactor.set(0, 0);
 		magenta.updateHitbox();
 		magenta.screenCenter();
 		magenta.visible = false;
 		magenta.antialiasing = ClientPrefs.globalAntialiasing;
 		magenta.color = 0xFFfd719b;
 		add(magenta);
+
+		backdrops = new FlxBackdrop(Paths.image('PsychLogo'), 0, 0, true, true, 25, 25); // also from tgt
+		backdrops.alpha = 0.75;
+		backdrops.x -= 35;
+		add(backdrops);
+
+		var circle:FlxSprite = new FlxSprite(originX - radiusX/1.5, originY - radiusY / 1.5).loadGraphic(Paths.image('mainmenu/stupidCircle'));
+		circle.scrollFactor.set(0, 0);
+		add(circle);
 		
 		// magenta.scrollFactor.set();
 
@@ -122,9 +145,9 @@ class MainMenuState extends MusicBeatState
 			menuItems.add(menuItem);
 			var scr:Float = (optionShit.length - 4) * 0.135;
 			if(optionShit.length < 6) scr = 0;
-			menuItem.scrollFactor.set(0, scr);
+			menuItem.scrollFactor.set(0, 0);
 			menuItem.antialiasing = ClientPrefs.globalAntialiasing;
-			//menuItem.setGraphicSize(Std.int(menuItem.width * 0.58));
+			menuItem.setGraphicSize(Std.int(menuItem.width * 0.75));
 			menuItem.updateHitbox();
 		}
 
@@ -172,6 +195,17 @@ class MainMenuState extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
+		menuItems.forEach(function(object:FlxSprite) // "borrowed" code from Tails Gets Trolled V3 menu
+			{
+				var input = (object.ID - curSelected - 3) * FlxAngle.asRadians(360 / (menuItems.length * 1.5));
+				var desiredX = FlxMath.fastSin(input)*radiusX;
+				var desiredY = (FlxMath.fastCos(input)*radiusY);
+
+				object.x = FlxMath.lerp(object.x, originX - object.width / 2 + desiredX, .125*(elapsed/(1/60)));
+				object.y = FlxMath.lerp(object.y, originY - object.height / 2 + desiredY, .125*(elapsed/(1/60)));
+			}
+		);
+
 		if (FlxG.sound.music.volume < 0.8)
 		{
 			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
@@ -266,10 +300,8 @@ class MainMenuState extends MusicBeatState
 
 		super.update(elapsed);
 
-		menuItems.forEach(function(spr:FlxSprite)
-		{
-			spr.screenCenter(X);
-		});
+		backdrops.x += .5*(elapsed/(1/60));
+		backdrops.y += .5*(elapsed/(1/60));
 	}
 
 	function changeItem(huh:Int = 0)
@@ -283,6 +315,14 @@ class MainMenuState extends MusicBeatState
 
 		menuItems.forEach(function(spr:FlxSprite)
 		{
+
+			if (spr.ID > curSelected + 2 || spr.ID < curSelected-2) // basically a render distance
+			{
+				spr.visible = false;
+			}else{
+				spr.visible = true;
+			}
+
 			spr.animation.play('idle');
 			spr.updateHitbox();
 
