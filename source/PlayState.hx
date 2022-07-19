@@ -1155,19 +1155,45 @@ class PlayState extends MusicBeatState
 		healthBarBG.sprTracker = healthBar;
 
 		iconP1 = new HealthIcon(boyfriend.healthIcon, true);
-		iconP1.y = healthBar.y - 75;
+		if (ClientPrefs.introType){
+			if (ClientPrefs.downScroll){
+				iconP1.y = healthBar.y - 300;
+			} else {
+				iconP1.y = healthBar.y + 100;
+			}
+		} else {
+			iconP1.y = healthBar.y - 75;
+		}
 		iconP1.visible = !ClientPrefs.hideHud;
 		iconP1.alpha = ClientPrefs.healthBarAlpha;
 		add(iconP1);
 
 		iconP2 = new HealthIcon(dad.healthIcon, false);
-		iconP2.y = healthBar.y - 75;
+		if (ClientPrefs.introType){
+			if (ClientPrefs.downScroll){
+				iconP2.y = healthBar.y - 300;
+			} else {
+				iconP2.y = healthBar.y + 100;
+			}
+		} else {
+			iconP2.y = healthBar.y - 75;
+		}
 		iconP2.visible = !ClientPrefs.hideHud;
 		iconP2.alpha = ClientPrefs.healthBarAlpha;
 		add(iconP2);
 		reloadHealthBarColors();
 
-		scoreTxt = new FlxText(0, healthBarBG.y + 36, FlxG.width, "", 20);
+		var scoreY:Float = 0;
+		if (ClientPrefs.introType){
+			if (ClientPrefs.downScroll){
+				scoreY = healthBarBG.y - 136;
+			} else {
+				scoreY = healthBarBG.y + 136;
+			}
+		} else {
+			scoreY = healthBarBG.y + 36;
+		}
+		scoreTxt = new FlxText(0, scoreY, FlxG.width, "", 20);
 		scoreTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		scoreTxt.scrollFactor.set();
 		scoreTxt.borderSize = 1.25;
@@ -2049,6 +2075,8 @@ class PlayState extends MusicBeatState
 				{
 					case 0:
 						FlxG.sound.play(Paths.sound('intro3' + introSoundsSuffix), 0.6);
+						if (ClientPrefs.introType)
+							FlxTween.tween(scoreTxt, {y: healthBarBG.y + 36}, Conductor.crochet / 1000, {ease: FlxEase.backOut});
 					case 1:
 						countdownReady = new FlxSprite().loadGraphic(Paths.image(introAlts[0]));
 						countdownReady.cameras = [camHUD];
@@ -2061,14 +2089,38 @@ class PlayState extends MusicBeatState
 						countdownReady.screenCenter();
 						countdownReady.antialiasing = antialias;
 						insert(members.indexOf(notes), countdownReady);
-						FlxTween.tween(countdownReady, {/*y: countdownReady.y + 100,*/ alpha: 0}, Conductor.crochet / 1000, {
-							ease: FlxEase.cubeInOut,
-							onComplete: function(twn:FlxTween)
-							{
-								remove(countdownReady);
-								countdownReady.destroy();
-							}
-						});
+
+						if (ClientPrefs.introType){
+							countdownReady.scale.set(0.1, 0.1);
+							var scaleTo:Float = 0.7;
+							if (PlayState.isPixelStage) scaleTo = 5.8;
+
+							FlxTween.tween(countdownReady.scale, {x: scaleTo, y: scaleTo}, Conductor.crochet / 1500, {
+								ease: FlxEase.cubeInOut,
+								onComplete: function(twn:FlxTween) // Double tween, fuck you
+								{
+									FlxTween.tween(countdownReady.scale, {x: 0, y: 0}, Conductor.crochet / 1500, {
+										ease: FlxEase.cubeInOut,
+										onComplete: function(twn:FlxTween)
+										{
+											remove(countdownReady);
+											countdownReady.destroy();
+										}
+									});
+								}
+							});
+							FlxTween.tween(iconP1, {y: healthBar.y - 75}, Conductor.crochet / 1000, {ease: FlxEase.backOut});
+						} else {
+							FlxTween.tween(countdownReady, {/*y: countdownReady.y + 100,*/ alpha: 0}, Conductor.crochet / 1000, {
+								ease: FlxEase.cubeInOut,
+								onComplete: function(twn:FlxTween)
+								{
+									remove(countdownReady);
+									countdownReady.destroy();
+								}
+							});
+						}
+						
 						FlxG.sound.play(Paths.sound('intro2' + introSoundsSuffix), 0.6);
 					case 2:
 						countdownSet = new FlxSprite().loadGraphic(Paths.image(introAlts[1]));
@@ -2081,14 +2133,38 @@ class PlayState extends MusicBeatState
 						countdownSet.screenCenter();
 						countdownSet.antialiasing = antialias;
 						insert(members.indexOf(notes), countdownSet);
-						FlxTween.tween(countdownSet, {/*y: countdownSet.y + 100,*/ alpha: 0}, Conductor.crochet / 1000, {
-							ease: FlxEase.cubeInOut,
-							onComplete: function(twn:FlxTween)
-							{
-								remove(countdownSet);
-								countdownSet.destroy();
-							}
-						});
+
+						if (ClientPrefs.introType){
+							countdownSet.scale.set(0.4, 0.4);
+							var scaleTo:Float = 0.9;
+							if (PlayState.isPixelStage) scaleTo = 6;
+
+							FlxTween.tween(countdownSet.scale, {x: scaleTo, y: scaleTo}, Conductor.crochet / 1500, {
+								ease: FlxEase.cubeInOut,
+								onComplete: function(twn:FlxTween) // Double tween, fuck you again
+								{
+									FlxTween.tween(countdownSet.scale, {x: 0, y: 0}, Conductor.crochet / 1500, {
+										ease: FlxEase.cubeInOut,
+										onComplete: function(twn:FlxTween)
+										{
+											remove(countdownSet);
+											countdownSet.destroy();
+										}
+									});
+								}
+							});
+							FlxTween.tween(iconP2, {y: healthBar.y - 75}, Conductor.crochet / 1000, {ease: FlxEase.backOut});
+						} else {
+							FlxTween.tween(countdownSet, {/*y: countdownSet.y + 100,*/ alpha: 0}, Conductor.crochet / 1000, {
+								ease: FlxEase.cubeInOut,
+								onComplete: function(twn:FlxTween)
+								{
+									remove(countdownSet);
+									countdownSet.destroy();
+								}
+							});
+						}
+
 						FlxG.sound.play(Paths.sound('intro1' + introSoundsSuffix), 0.6);
 					case 3:
 						countdownGo = new FlxSprite().loadGraphic(Paths.image(introAlts[2]));
@@ -2103,14 +2179,48 @@ class PlayState extends MusicBeatState
 						countdownGo.screenCenter();
 						countdownGo.antialiasing = antialias;
 						insert(members.indexOf(notes), countdownGo);
-						FlxTween.tween(countdownGo, {/*y: countdownGo.y + 100,*/ alpha: 0}, Conductor.crochet / 1000, {
-							ease: FlxEase.cubeInOut,
-							onComplete: function(twn:FlxTween)
-							{
-								remove(countdownGo);
-								countdownGo.destroy();
-							}
-						});
+
+						if (ClientPrefs.introType){
+							countdownGo.scale.set(0.4, 0.4);
+							var scaleTo:Float = 1.4;
+							if (PlayState.isPixelStage) scaleTo = 6.5;
+
+							FlxTween.tween(countdownGo.scale, {x: scaleTo, y: scaleTo}, Conductor.crochet / 2000, {
+								ease: FlxEase.backOut,
+								onComplete: function(twn:FlxTween) // Double tween, fuck you ;)
+								{
+									FlxTween.tween(countdownGo, {y: 1200}, Conductor.crochet / 1000, {
+										ease: FlxEase.cubeInOut,
+										onComplete: function(twn:FlxTween)
+										{
+											remove(countdownGo);
+											countdownGo.destroy();
+										}
+									});
+								}
+							});
+							FlxTween.tween(iconP1, {angle: -360}, Conductor.crochet / 2000, { // woah cool rotation
+								ease: FlxEase.cubeInOut, 
+								onComplete: function(twn:FlxTween) {
+									iconP1.angle = 0;
+								}
+							});
+							FlxTween.tween(iconP2, {angle: 360}, Conductor.crochet / 2000, {
+								ease: FlxEase.cubeInOut, 
+								onComplete: function(twn:FlxTween) {
+									iconP2.angle = 0;
+								}
+							});
+						} else {
+							FlxTween.tween(countdownGo, {/*y: countdownGo.y + 100,*/ alpha: 0}, Conductor.crochet / 1000, {
+								ease: FlxEase.cubeInOut,
+								onComplete: function(twn:FlxTween)
+								{
+									remove(countdownGo);
+									countdownGo.destroy();
+								}
+							});
+						}
 						FlxG.sound.play(Paths.sound('introGo' + introSoundsSuffix), 0.6);
 					case 4:
 				}
@@ -2569,23 +2679,41 @@ class PlayState extends MusicBeatState
 		{
 			// FlxG.log.add(i);
 			var targetAlpha:Float = 1;
+			var lolY:Float = 0;
 			if (player < 1)
 			{
 				if(!ClientPrefs.opponentStrums) targetAlpha = 0;
 				else if(ClientPrefs.middleScroll) targetAlpha = 0.35;
 			}
+			if (ClientPrefs.introType){
+				if (ClientPrefs.downScroll){
+					lolY = -900;
+				} else {
+					lolY = 1500;
+				}
+			} else {
+				lolY = strumLine.y;
+			}
 
-			var babyArrow:StrumNote = new StrumNote(ClientPrefs.middleScroll ? STRUM_X_MIDDLESCROLL : STRUM_X, strumLine.y, i, player);
+			var babyArrow:StrumNote = new StrumNote(ClientPrefs.middleScroll ? STRUM_X_MIDDLESCROLL : STRUM_X, lolY, i, player);
 			babyArrow.downScroll = ClientPrefs.downScroll;
 			if (!isStoryMode && !skipArrowStartTween)
 			{
 				//babyArrow.y -= 10;
 				babyArrow.alpha = 0;
+				if (ClientPrefs.introType)
+					FlxTween.tween(babyArrow, {y: strumLine.y}, 1, {ease: FlxEase.backOut, startDelay: 0.5 + (0.2 * i)});
 				FlxTween.tween(babyArrow, {/*y: babyArrow.y + 10,*/ alpha: targetAlpha}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * i)});
 			}
 			else
 			{
-				babyArrow.alpha = targetAlpha;
+				//babyArrow.alpha = targetAlpha;
+				//babyArrow.y = strumLine.y;
+
+				// Why freeplay exclusive?
+				FlxTween.tween(babyArrow, {alpha: targetAlpha}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * i)});
+				if (ClientPrefs.introType)
+					FlxTween.tween(babyArrow, {y: strumLine.y}, 1, {ease: FlxEase.backOut, startDelay: 0.5 + (0.2 * i)});
 			}
 
 			if (player == 1)
