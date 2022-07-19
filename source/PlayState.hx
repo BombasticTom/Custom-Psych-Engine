@@ -2200,13 +2200,13 @@ class PlayState extends MusicBeatState
 								}
 							});
 							FlxTween.tween(iconP1, {angle: -360}, Conductor.crochet / 2000, { // woah cool rotation
-								ease: FlxEase.cubeInOut, 
+								ease: FlxEase.backOut, 
 								onComplete: function(twn:FlxTween) {
 									iconP1.angle = 0;
 								}
 							});
 							FlxTween.tween(iconP2, {angle: 360}, Conductor.crochet / 2000, {
-								ease: FlxEase.cubeInOut, 
+								ease: FlxEase.backOut, 
 								onComplete: function(twn:FlxTween) {
 									iconP2.angle = 0;
 								}
