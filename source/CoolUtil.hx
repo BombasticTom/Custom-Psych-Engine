@@ -138,4 +138,8 @@ class CoolUtil
 		FlxG.openURL(site);
 		#end
 	}
+
+	public static function isBoolean(thing:String) {
+		return thing.toLowerCase() == 'true';
+	}
 }

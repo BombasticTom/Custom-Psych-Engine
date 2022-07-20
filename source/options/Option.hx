@@ -39,6 +39,8 @@ class Option
 	private var variable:String = null; //Variable from ClientPrefs.hx
 	public var defaultValue:Dynamic = null;
 
+	public var isModItem:Bool = false;
+
 	public var curOption:Int = 0; //Don't change this
 	public var options:Array<String> = null; //Only used in string type
 	public var changeValue:Dynamic = 1; //Only used in int/float/percent type, how much is changed when you PRESS
@@ -50,7 +52,7 @@ class Option
 	public var description:String = '';
 	public var name:String = 'Unknown';
 
-	public function new(name:String, description:String = '', variable:String, type:String = 'bool', defaultValue:Dynamic = 'null variable value', ?options:Array<String> = null)
+	public function new(name:String, description:String = '', variable:String, type:String = 'bool', defaultValue:Dynamic = 'null variable value', ?options:Array<String> = null, ?isModItem:Bool = null)
 	{
 		this.name = name;
 		this.description = description;
@@ -58,6 +60,7 @@ class Option
 		this.type = type;
 		this.defaultValue = defaultValue;
 		this.options = options;
+		this.isModItem = isModItem;
 
 		if(defaultValue == 'null variable value')
 		{
@@ -84,7 +87,9 @@ class Option
 		switch(type)
 		{
 			case 'string':
-				var num:Int = options.indexOf(getValue());
+				trace(defaultValue);
+				var num:Int = isModItem ? 0 /*isModItem ? options.indexOf(defaultValue)*/ : options.indexOf(getValue());
+
 				if(num > -1) {
 					curOption = num;
 				}
@@ -113,7 +118,8 @@ class Option
 	}
 	public function setValue(value:Dynamic)
 	{
-		Reflect.setProperty(ClientPrefs, variable, value);
+		if (!isModItem)
+			Reflect.setProperty(ClientPrefs, variable, value);
 	}
 
 	public function setChild(child:Alphabet)
