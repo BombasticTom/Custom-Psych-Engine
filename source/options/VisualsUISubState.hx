@@ -63,6 +63,13 @@ class VisualsUISubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 
+		var option:Option = new Option('Goofy Ahh Intro',
+			"Choose whether the regular or the custom intro will play.",
+			'introType',
+			'bool',
+			true);
+		addOption(option);
+	
 		var option:Option = new Option('Camera Zooms',
 			"If unchecked, the camera won't zoom in on a beat hit.",
 			'camZooms',
