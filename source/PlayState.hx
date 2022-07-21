@@ -302,6 +302,7 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
+
 		Paths.clearStoredMemory();
 
 		// for lua
@@ -1356,7 +1357,7 @@ class PlayState extends MusicBeatState
 		DiscordClient.changePresence(detailsText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter());
 		#end
 
-		if(!ClientPrefs.controllerMode)
+		if(!ClientPrefs.controllerMode && ClientPrefs.curEngine == 'Psych Engine')
 		{
 			FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 			FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
@@ -4415,33 +4416,141 @@ class PlayState extends MusicBeatState
 		var down = controls.NOTE_DOWN;
 		var left = controls.NOTE_LEFT;
 		var controlHoldArray:Array<Bool> = [left, down, up, right];
+		var controlArray:Array<Bool> = [controls.NOTE_LEFT_P, controls.NOTE_DOWN_P, controls.NOTE_UP_P, controls.NOTE_RIGHT_P];
 
-		// TO DO: Find a better way to handle controller inputs, this should work for now
-		if(ClientPrefs.controllerMode)
-		{
-			var controlArray:Array<Bool> = [controls.NOTE_LEFT_P, controls.NOTE_DOWN_P, controls.NOTE_UP_P, controls.NOTE_RIGHT_P];
-			if(controlArray.contains(true))
-			{
-				for (i in 0...controlArray.length)
+		switch(ClientPrefs.curEngine) {
+			case 'Vanilla':{
+				if (controlHoldArray.indexOf(true) != -1 && generatedMusic)
 				{
-					if(controlArray[i])
-						onKeyPress(new KeyboardEvent(KeyboardEvent.KEY_DOWN, true, true, -1, keysArray[i][0]));
+					notes.forEachAlive(function(daNote:Note)
+					{
+						if (daNote.isSustainNote && daNote.canBeHit && daNote.mustPress && controlHoldArray[daNote.noteData])
+						{
+							goodNoteHit(daNote);
+						}
+					});
+				};
+			
+				if (controlArray.indexOf(true) != -1 && generatedMusic) {
+					boyfriend.holdTimer = 0;
+			
+					var pressedNotes:Array<Note> = [];
+					var noteDatas:Array<Int> = [];
+					var epicNotes:Array<Note> = [];
+					notes.forEachAlive(function(daNote:Note)
+					{
+						if (daNote.canBeHit && daNote.mustPress && !daNote.tooLate && !daNote.wasGoodHit)
+						{
+							if (noteDatas.indexOf(daNote.noteData) != -1)
+							{
+								for (i in 0...pressedNotes.length)
+								{
+									var note:Note = pressedNotes[i];
+									if (note.noteData == daNote.noteData && Math.abs(daNote.strumTime - note.strumTime) < 10)
+									{
+										epicNotes.push(daNote);
+										break;
+									} else if (note.noteData == daNote.noteData && note.strumTime > daNote.strumTime){
+										pressedNotes.remove(note);
+										pressedNotes.push(daNote);
+										break;
+									}
+								}
+							}else{
+								pressedNotes.push(daNote);
+								noteDatas.push(daNote.noteData);
+							}
+						}
+					});
+					for (i in 0...epicNotes.length) {
+						var note:Note = epicNotes[i];
+						note.kill();
+						notes.remove(note);
+						note.destroy();
+					}
+			
+					if (pressedNotes.length > 0)
+						pressedNotes.sort(sortByShit);
+			
+					if (pressedNotes.length > 0){
+						for (i in 0...controlArray.length) {
+							if (controlArray[i] && noteDatas.indexOf(i) == -1) {
+								noteMissPress(i);
+							}
+						}
+						for (i in 0...pressedNotes.length) {
+							var note:Note = pressedNotes[i];
+							if (controlArray[note.noteData]) {
+								goodNoteHit(note);
+							}
+						}
+					}else{
+						noteMissPress();
+					}
+				};
+
+				playerStrums.forEachAlive(function(spr:StrumNote){
+					if(spr != null)
+					{
+						if (spr.animation.curAnim.name != 'pressed' && spr.animation.curAnim.name != 'confirm') {
+							spr.playAnim('pressed');
+							spr.resetAnim = 0;
+						}
+						if (spr.animation.curAnim.name != 'static' && !controlHoldArray[spr.ID]) {
+							spr.playAnim('static');
+							spr.resetAnim = 0;
+						}
+					}
+				});
+			}
+			
+			default: {
+
+				// TO DO: Find a better way to handle controller inputs, this should work for now
+				if(ClientPrefs.controllerMode)
+				{
+					if(controlArray.contains(true))
+					{
+						for (i in 0...controlArray.length)
+						{
+							if(controlArray[i])
+								onKeyPress(new KeyboardEvent(KeyboardEvent.KEY_DOWN, true, true, -1, keysArray[i][0]));
+						}
+					}
 				}
+
+				// FlxG.watch.addQuick('asdfa', upP);
+				if (startedCountdown && !boyfriend.stunned && generatedMusic)
+				{
+					// rewritten inputs???
+					notes.forEachAlive(function(daNote:Note)
+					{
+						// hold note functions
+						if (daNote.isSustainNote && controlHoldArray[daNote.noteData] && daNote.canBeHit
+						&& daNote.mustPress && !daNote.tooLate && !daNote.wasGoodHit && !daNote.blockHit) {
+							goodNoteHit(daNote);
+						}
+					});
+				}
+
+				// TO DO: Find a better way to handle controller inputs, this should work for now
+				if(ClientPrefs.controllerMode)
+				{
+					var controlArray:Array<Bool> = [controls.NOTE_LEFT_R, controls.NOTE_DOWN_R, controls.NOTE_UP_R, controls.NOTE_RIGHT_R];
+					if(controlArray.contains(true))
+					{
+						for (i in 0...controlArray.length)
+						{
+							if(controlArray[i])
+								onKeyRelease(new KeyboardEvent(KeyboardEvent.KEY_UP, true, true, -1, keysArray[i][0]));
+						}
+					}
+				}
+
 			}
 		}
 
-		// FlxG.watch.addQuick('asdfa', upP);
-		if (startedCountdown && !boyfriend.stunned && generatedMusic)
-		{
-			// rewritten inputs???
-			notes.forEachAlive(function(daNote:Note)
-			{
-				// hold note functions
-				if (daNote.isSustainNote && controlHoldArray[daNote.noteData] && daNote.canBeHit
-				&& daNote.mustPress && !daNote.tooLate && !daNote.wasGoodHit && !daNote.blockHit) {
-					goodNoteHit(daNote);
-				}
-			});
+		if (startedCountdown && !boyfriend.stunned && generatedMusic) {
 
 			if (controlHoldArray.contains(true) && !endingSong) {
 				#if ACHIEVEMENTS_ALLOWED
@@ -4458,19 +4567,6 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		// TO DO: Find a better way to handle controller inputs, this should work for now
-		if(ClientPrefs.controllerMode)
-		{
-			var controlArray:Array<Bool> = [controls.NOTE_LEFT_R, controls.NOTE_DOWN_R, controls.NOTE_UP_R, controls.NOTE_RIGHT_R];
-			if(controlArray.contains(true))
-			{
-				for (i in 0...controlArray.length)
-				{
-					if(controlArray[i])
-						onKeyRelease(new KeyboardEvent(KeyboardEvent.KEY_UP, true, true, -1, keysArray[i][0]));
-				}
-			}
-		}
 	}
 
 	function noteMiss(daNote:Note):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
@@ -4723,8 +4819,9 @@ class PlayState extends MusicBeatState
 	function spawnNoteSplashOnNote(note:Note) {
 		if(ClientPrefs.noteSplashes && note != null) {
 			var strum:StrumNote = playerStrums.members[note.noteData];
+			var splashY:Float = (ClientPrefs.curEngine == 'Vanilla') ? note.y : strum.y;
 			if(strum != null) {
-				spawnNoteSplash(strum.x, strum.y, note.noteData, note);
+				spawnNoteSplash(strum.x, splashY, note.noteData, note);
 			}
 		}
 	}
@@ -4937,7 +5034,7 @@ class PlayState extends MusicBeatState
 		}
 		luaArray = [];
 
-		if(!ClientPrefs.controllerMode)
+		if(!ClientPrefs.controllerMode && ClientPrefs.curEngine == 'Psych Engine')
 		{
 			FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 			FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);

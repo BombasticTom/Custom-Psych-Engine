@@ -54,6 +54,8 @@ class ClientPrefs {
 		'opponentplay' => false
 	];
 
+	public static var curEngine:String = 'Psych Engine';
+
 	public static var comboOffset:Array<Int> = [0, 0, 0, 0];
 	public static var ratingOffset:Int = 0;
 	public static var sickWindow:Int = 45;
@@ -116,6 +118,7 @@ class ClientPrefs {
 		FlxG.save.data.scoreZoom = scoreZoom;
 		FlxG.save.data.noReset = noReset;
 		FlxG.save.data.healthBarAlpha = healthBarAlpha;
+		FlxG.save.data.curEngine = curEngine;
 		FlxG.save.data.comboOffset = comboOffset;
 		FlxG.save.data.achievementsMap = Achievements.achievementsMap;
 		FlxG.save.data.henchmenDeath = Achievements.henchmenDeath;
@@ -214,6 +217,11 @@ class ClientPrefs {
 		if(FlxG.save.data.healthBarAlpha != null) {
 			healthBarAlpha = FlxG.save.data.healthBarAlpha;
 		}
+
+		if (FlxG.save.data.curEngine != null) {
+			curEngine = FlxG.save.data.curEngine;
+		}
+
 		if(FlxG.save.data.comboOffset != null) {
 			comboOffset = FlxG.save.data.comboOffset;
 		}
