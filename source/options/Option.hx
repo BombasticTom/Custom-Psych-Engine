@@ -40,6 +40,7 @@ class Option
 	public var defaultValue:Dynamic = null;
 
 	public var isModItem:Bool = false;
+	public var emulatedVal:Dynamic;
 
 	public var curOption:Int = 0; //Don't change this
 	public var options:Array<String> = null; //Only used in string type
@@ -80,6 +81,8 @@ class Option
 			}
 		}
 
+		emulatedVal = defaultValue;
+
 		if(getValue() == null) {
 			setValue(defaultValue);
 		}
@@ -88,6 +91,7 @@ class Option
 		{
 			case 'string':
 				trace(defaultValue);
+				trace(options);
 				var num:Int = isModItem ? 0 /*isModItem ? options.indexOf(defaultValue)*/ : options.indexOf(getValue());
 
 				if(num > -1) {

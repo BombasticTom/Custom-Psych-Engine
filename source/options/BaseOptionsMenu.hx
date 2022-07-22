@@ -162,7 +162,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 				if(controls.ACCEPT)
 				{
 					FlxG.sound.play(Paths.sound('scrollMenu'));
-					curOption.setValue((curOption.getValue() == true) ? false : true);
+					if (!curOption.isModItem)
+						curOption.setValue((curOption.getValue() == true) ? false : true);
+					else
+						curOption.emulatedVal = !curOption.emulatedVal;
+
 					curOption.change();
 					reloadCheckboxes();
 				}
@@ -179,7 +183,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 							switch(curOption.type)
 							{
 								case 'int' | 'float' | 'percent':
-									holdValue = curOption.getValue() + add;
+									holdValue = curOption.isModItem ? curOption.emulatedVal + add : curOption.getValue() + add;
 									if(holdValue < curOption.minValue) holdValue = curOption.minValue;
 									else if (holdValue > curOption.maxValue) holdValue = curOption.maxValue;
 
@@ -187,11 +191,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 									{
 										case 'int':
 											holdValue = Math.round(holdValue);
-											curOption.setValue(holdValue);
+											curOption.isModItem ? curOption.emulatedVal = holdValue : curOption.setValue(holdValue);
 
 										case 'float' | 'percent':
 											holdValue = FlxMath.roundDecimal(holdValue, curOption.decimals);
-											curOption.setValue(holdValue);
+											curOption.isModItem ? curOption.emulatedVal = holdValue : curOption.setValue(holdValue);
 									}
 
 								case 'string':
@@ -206,7 +210,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 									}
 
 									curOption.curOption = num;
-									curOption.setValue(curOption.options[num]); //lol
+									curOption.isModItem ? curOption.emulatedVal = curOption.options[num] : curOption.setValue(curOption.options[num]); //lol
 									//trace(curOption.options[num]);
 							}
 							updateTextFrom(curOption);
@@ -220,10 +224,10 @@ class BaseOptionsMenu extends MusicBeatSubstate
 							switch(curOption.type)
 							{
 								case 'int':
-									curOption.setValue(Math.round(holdValue));
+									curOption.isModItem ? curOption.emulatedVal = Math.round(holdValue) : curOption.setValue(Math.round(holdValue));
 								
 								case 'float' | 'percent':
-									curOption.setValue(FlxMath.roundDecimal(holdValue, curOption.decimals));
+									curOption.isModItem ? curOption.emulatedVal = FlxMath.roundDecimal(holdValue, curOption.decimals) : curOption.setValue(FlxMath.roundDecimal(holdValue, curOption.decimals));
 							}
 							updateTextFrom(curOption);
 							curOption.change();
@@ -271,7 +275,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 	function updateTextFrom(option:Option) {
 		var text:String = option.displayFormat;
-		var val:Dynamic = option.getValue();
+		var val:Dynamic = option.isModItem ? option.emulatedVal : option.getValue();
 		if(option.type == 'percent') val *= 100;
 		var def:Dynamic = option.defaultValue;
 		option.text = text.replace('%v', val).replace('%d', def);
@@ -347,7 +351,13 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 	function reloadCheckboxes() {
 		for (checkbox in checkboxGroup) {
-			checkbox.daValue = (optionsArray[checkbox.ID].getValue() == true);
+			var option:Option = optionsArray[checkbox.ID];
+
+			if (option.isModItem) {
+				checkbox.daValue = option.emulatedVal;
+			}else {
+				checkbox.daValue = (option.getValue() == true);
+			}
 		}
 	}
 }

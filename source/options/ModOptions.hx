@@ -24,26 +24,29 @@ class ModOptions extends BaseOptionsMenu
 					if (!FileSystem.isDirectory(path) && file.endsWith('.txt')) {
 
 						var optionText:Array<Dynamic> = CoolUtil.coolTextFile(path);
-                        
-                        switch(optionText[3]) {
-                            case 'bool':
-                                optionText[4] = CoolUtil.isBoolean(optionText[4]);
-                            case 'string':
-                                trace(optionText[5].split(','));
-                                optionText[5] = optionText[5].split(',');
-                        };
-                        
+                        var optionType:String = optionText[3];
+                        var options:String = optionText[5];
+
+                        var optList:Array<String> = (optionType == 'string') ? options.split(',') : null;
+
                         var option:Option = new Option( // overriding options
                             optionText[0], // name
                             optionText[1], // description
                             optionText[2], // save (a key in which optionText info is stored)
-                            optionText[3], // optionText type
+                            optionType, // optionText type
                             optionText[4], // default value (might be overwritten depending on what did you set)
-                            optionText[5],
+                            optList,
                             true // other values (if it's a string option type)
                         );
+                        
+                        if (optionType == 'int' || optionType == 'float' || optionType == 'percent') {
+                            option.displayFormat = '%v';
+                            option.minValue = optionText[5];
+                            option.maxValue = optionText[6];
+                            option.changeValue = optionText[7];
+                            option.scrollSpeed = optionText[8];
+                        };
 
-                        option.isModItem = true;
                         addOption(option);
 					};
                 };
