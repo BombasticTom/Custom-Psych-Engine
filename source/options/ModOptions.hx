@@ -15,10 +15,15 @@ class ModOptions extends BaseOptionsMenu
 		rpcTitle = 'Mod Options Menu'; //for Discord Rich Presence
 
         var luaOptionDirs:Array<String> = Paths.getModDirectories();
+        luaOptionDirs.insert(0, '');
 
         for (i in 0...luaOptionDirs.length)
         {
             var directory:String = 'mods/' + luaOptionDirs[i] + '/options';
+            if (luaOptionDirs[i] == '') {
+                directory = 'mods/options';
+            }
+
             var optionsArray:Array<Option> = [];
 
             if (FileSystem.exists(directory)) {
@@ -68,7 +73,9 @@ class ModOptions extends BaseOptionsMenu
     override function closeState() {
         for (map in optionMap.keys()) {
             var save:FlxSave = new FlxSave();
-		    save.bind('options', 'psychenginemods/$map/');
+            var dir = map == '' ? 'psychenginemods' : 'psychenginemods/$map/';
+
+		    save.bind('options', dir);
 
             for (option in optionMap.get(map)) {
                 Reflect.setField(save.data, option.getVariable(), option.getValue());

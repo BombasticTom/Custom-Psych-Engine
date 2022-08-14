@@ -70,9 +70,14 @@ class OptionsState extends MusicBeatState
 		#if MODS_ALLOWED
 
 		var showModOpt:Bool = false;
+		luaOptionDirs.insert(0, '');
 		for (i in 0...luaOptionDirs.length)
 			{
 					var directory:String = 'mods/' + luaOptionDirs[i] + '/options';
+					if (luaOptionDirs[i] == '') {
+						directory = 'mods/options';
+					}
+
 					trace(directory);
 					if (FileSystem.exists(directory)) {
 						for (file in FileSystem.readDirectory(directory))
