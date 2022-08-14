@@ -1,11 +1,14 @@
 package options;
 
+import flixel.util.FlxSave;
 import sys.FileSystem;
 
 using StringTools;
 
 class ModOptions extends BaseOptionsMenu
 {
+    var optionMap:Map<String, Array<Option>> = [];
+
     public function new()
     {
         title = 'Mod Options';
@@ -16,7 +19,8 @@ class ModOptions extends BaseOptionsMenu
         for (i in 0...luaOptionDirs.length)
         {
             var directory:String = 'mods/' + luaOptionDirs[i] + '/options';
-            trace(directory);
+            var optionsArray:Array<Option> = [];
+
             if (FileSystem.exists(directory)) {
                 for (file in FileSystem.readDirectory(directory))
                 {
@@ -47,12 +51,31 @@ class ModOptions extends BaseOptionsMenu
                             option.scrollSpeed = optionText[8];
                         };
 
+                        optionsArray.push(option);
                         addOption(option);
 					};
                 };
             };
+
+            if (optionsArray.length > 0) {
+                optionMap.set(luaOptionDirs[i], optionsArray);
+            }
         };
 
         super();
     }
+
+    override function closeState() {
+        for (map in optionMap.keys()) {
+            var save:FlxSave = new FlxSave();
+		    save.bind('options', 'psychenginemods/$map/');
+
+            for (option in optionMap.get(map)) {
+                Reflect.setField(save.data, option.getVariable(), option.getValue());
+            }
+            save.flush();
+        }
+        
+        super.closeState();
+    };
 }

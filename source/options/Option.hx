@@ -90,8 +90,6 @@ class Option
 		switch(type)
 		{
 			case 'string':
-				trace(defaultValue);
-				trace(options);
 				var num:Int = isModItem ? 0 /*isModItem ? options.indexOf(defaultValue)*/ : options.indexOf(getValue());
 
 				if(num > -1) {
@@ -118,12 +116,19 @@ class Option
 
 	public function getValue():Dynamic
 	{
-		return Reflect.getProperty(ClientPrefs, variable);
+		if (!isModItem)
+			return Reflect.getProperty(ClientPrefs, variable);
+		else
+			return emulatedVal;
 	}
 	public function setValue(value:Dynamic)
 	{
 		if (!isModItem)
 			Reflect.setProperty(ClientPrefs, variable, value);
+	}
+
+	public function getVariable() {
+		return variable;
 	}
 
 	public function setChild(child:Alphabet)

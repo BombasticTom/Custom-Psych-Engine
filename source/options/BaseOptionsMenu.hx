@@ -145,8 +145,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		}
 
 		if (controls.BACK) {
-			close();
-			FlxG.sound.play(Paths.sound('cancelMenu'));
+			closeState();
 		}
 
 		if(nextAccept <= 0)
@@ -360,4 +359,9 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			}
 		}
 	}
+
+	function closeState() {
+		close();
+		FlxG.sound.play(Paths.sound('cancelMenu'));
+	};
 }
