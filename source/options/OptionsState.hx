@@ -78,7 +78,7 @@ class OptionsState extends MusicBeatState
 						directory = 'mods/options';
 					}
 
-					trace(directory);
+					//trace(directory);
 					if (FileSystem.exists(directory)) {
 						for (file in FileSystem.readDirectory(directory))
 						{

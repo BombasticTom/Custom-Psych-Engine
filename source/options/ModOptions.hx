@@ -1,5 +1,6 @@
 package options;
 
+import flixel.FlxG;
 import flixel.util.FlxSave;
 import sys.FileSystem;
 
@@ -19,7 +20,9 @@ class ModOptions extends BaseOptionsMenu
 
         for (i in 0...luaOptionDirs.length)
         {
-            var directory:String = 'mods/' + luaOptionDirs[i] + '/options';
+            var curMod:String = luaOptionDirs[i];
+
+            var directory:String = 'mods/' + curMod + '/options';
             if (luaOptionDirs[i] == '') {
                 directory = 'mods/options';
             }
@@ -30,20 +33,25 @@ class ModOptions extends BaseOptionsMenu
                 for (file in FileSystem.readDirectory(directory))
                 {
                     var path = haxe.io.Path.join([directory, file]);
+                    var save:FlxSave = new FlxSave();
+                    save.bind('options', curMod == '' ? 'psychenginemods' : 'psychenginemods/$curMod');
+
 					if (!FileSystem.isDirectory(path) && file.endsWith('.txt')) {
 
 						var optionText:Array<Dynamic> = CoolUtil.coolTextFile(path);
                         var optionType:String = optionText[3];
+                        var defVal:Dynamic = Reflect.field(save.data, optionText[2]);
                         var options:String = optionText[5];
-
                         var optList:Array<String> = (optionType == 'string') ? options.split(',') : null;
+
+                        if (defVal == null) {defVal = optionText[4];};
 
                         var option:Option = new Option( // overriding options
                             optionText[0], // name
                             optionText[1], // description
                             optionText[2], // save (a key in which optionText info is stored)
                             optionType, // optionText type
-                            optionText[4], // default value (might be overwritten depending on what did you set)
+                            defVal, // default value (might be overwritten depending on what did you set)
                             optList,
                             true // other values (if it's a string option type)
                         );
@@ -63,7 +71,7 @@ class ModOptions extends BaseOptionsMenu
             };
 
             if (optionsArray.length > 0) {
-                optionMap.set(luaOptionDirs[i], optionsArray);
+                optionMap.set(curMod, optionsArray);
             }
         };
 
